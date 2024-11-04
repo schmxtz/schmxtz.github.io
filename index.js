@@ -10,15 +10,14 @@ async function getKatakana() {
 
 async function getData(resource) {
     const germanText = document.getElementById("germanText");
-    console.log(germanText.getBoundingClientRect());
     const japaneseText = document.getElementById("japaneseText");
     japaneseText.value = '';
     try {
-        if (germanText.value == '') return;
+        if (germanText.value == null) return;
         const response = await fetch(API_ADDRESS + resource, {
             method: "POST",
             body: JSON.stringify({
-                user_input: germanText.value == null ? germanText.value : ''
+                user_input: germanText.value != null ? germanText.value : ' '
             }),
             headers: {
                 "Content-type": "application/json; charset=UTF-8"
@@ -28,6 +27,7 @@ async function getData(resource) {
             throw new Error(`Response status: ${response.status}`);
         }
         const json = await response.json();
+        console.log(json);
         if (resource.localeCompare("transcriber") == 0) {
             for(let i = 0; i < json.length; i++) {
                 japaneseText.value += json[i][3];
