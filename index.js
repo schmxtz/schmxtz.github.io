@@ -36,8 +36,8 @@ async function getData(resource) {
             addListeners(germanWord, japaneseWord);
             germanText.appendChild(germanWord);
             japaneseText.appendChild(japaneseWord);
-            if (json[i][1].localeCompare("PUNCT") != 0 && i != json.length - 1 && json[i + 1][1].localeCompare("PUNCT") != 0) {
-                japaneseText.appendChild(addPunct("・"));
+            if (i != json.length - 1 && json[i + 1][1].localeCompare("PUNCT") != 0) {
+                japaneseText.appendChild(addPunct(" "));
                 germanText.appendChild(addPunct(" "));
             }
 
@@ -51,7 +51,7 @@ function addWord(text, id) {
     let newElement = document.createElement("span");
     newElement.innerText = text;
     newElement.id = id;
-    
+
 
     return newElement;
 }
@@ -65,25 +65,36 @@ function addPunct(punct) {
 function addListeners(germanWord, japaneseWord) {
     germanWord.otherWord = japaneseWord;
     japaneseWord.otherWord = germanWord;
-    germanWord.onmouseenter = function(event){
+    germanWord.onmouseenter = function (event) {
         this.className = "wordHoverStyling";
         this.otherWord.className = "wordHoverStyling";
         event.preventDefault();
     };
-    germanWord.onmouseleave = function(event){
+    germanWord.onmouseleave = function (event) {
         this.className = "";
         this.otherWord.className = "";
         event.preventDefault();
     };
 
-    japaneseWord.onmouseenter = function(event){
+    japaneseWord.onmouseenter = function (event) {
         this.className = "wordHoverStyling";
         this.otherWord.className = "wordHoverStyling";
         event.preventDefault();
     };
-    japaneseWord.onmouseleave = function(event){
+    japaneseWord.onmouseleave = function (event) {
         this.className = "";
         this.otherWord.className = "";
         event.preventDefault();
     };
 }
+
+setTimeout(() => {
+    const germanText = document.getElementById("germanText");
+    germanText.onpaste = (event) => {
+        event.preventDefault();
+        clipboardData = (event.originalEvent || event).clipboardData;
+        pastedData = clipboardData.getData('Text');
+        germanText.innerText = pastedData;
+    };
+}, 100);
+
