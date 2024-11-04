@@ -1,4 +1,11 @@
 const API_ADDRESS = "https://jptranscriptionapi.onrender.com/";
+document.addEventListener('mouseup', selectedTextHandler, false);
+document.onmousedown = () => {
+    if(document.contains(document.getElementById("share-snippet"))) {
+        document.getElementById("share-snippet").remove();
+        (window.getSelection ? window.getSelection() : document.selection).empty();
+    }
+}
 
 async function getPhonetics() {
     getData("phonetizer");
@@ -10,6 +17,7 @@ async function getKatakana() {
 
 async function getData(resource) {
     const germanText = document.getElementById("germanText");
+
     const japaneseText = document.getElementById("japaneseText");
     try {
         if (germanText.innerText == '') return;
@@ -26,7 +34,6 @@ async function getData(resource) {
             throw new Error(`Response status: ${response.status}`);
         }
         const json = await response.json();
-        console.log(json);
         // Reset text
         germanText.replaceChildren();
         japaneseText.replaceChildren();
@@ -68,6 +75,7 @@ function addListeners(germanWord, japaneseWord) {
     germanWord.onmouseenter = function (event) {
         this.className = "wordHoverStyling";
         this.otherWord.className = "wordHoverStyling";
+        this.otherWord.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
         event.preventDefault();
     };
     germanWord.onmouseleave = function (event) {
@@ -79,6 +87,7 @@ function addListeners(germanWord, japaneseWord) {
     japaneseWord.onmouseenter = function (event) {
         this.className = "wordHoverStyling";
         this.otherWord.className = "wordHoverStyling";
+        this.otherWord.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
         event.preventDefault();
     };
     japaneseWord.onmouseleave = function (event) {
@@ -86,6 +95,46 @@ function addListeners(germanWord, japaneseWord) {
         this.otherWord.className = "";
         event.preventDefault();
     };
+
+    germanWord.onclick = function (event) {
+        window.speechSynthesis.cancel();
+        var u = new SpeechSynthesisUtterance();
+        u.text = event.srcElement.innerText;
+        u.lang = 'de-DE';
+        u.rate = 1.0;
+        speechSynthesis.speak(u);
+    }
+
+    japaneseWord.onclick = function (event) {
+        window.speechSynthesis.cancel();
+        var u = new SpeechSynthesisUtterance();
+        u.text = event.srcElement.innerText;
+        u.lang = 'ja-JP';
+        u.rate = 1.0;
+        u.volume = 0.5;
+        speechSynthesis.speak(u);
+    }
+}
+
+// TODO: FIX BUTTON LOCATION
+function selectedTextHandler(event) {
+    if(document.contains(document.getElementById("share-snippet"))) {
+        document.getElementById("share-snippet").remove();
+    }
+    // Check if any text was selected
+    if(window.getSelection().toString().length > 0) {
+        // Find out how much (if any) user has scrolled
+        var scrollTop = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+        
+        // Get cursor position
+        const posX = event.clientX - 110;
+        const posY = event.clientY + 20 + scrollTop;
+      
+        // Create Twitter share URL
+        
+        // Append HTML to the body, create the "Tweet Selection" dialog
+        document.body.insertAdjacentHTML('beforeend', '<button id="share-snippet" style="position: absolute; top: '+posY+'px; left: '+posX+'px;"> Text to speech </button>');
+    }
 }
 
 setTimeout(() => {
