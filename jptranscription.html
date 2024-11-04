@@ -24,15 +24,16 @@
     <div class="translationComponent">
         <div class="translationText">
             <label class="translationTextLabel" for="user input">German words</label>
-            <textarea id="germanText" class="translationTextBox"></textarea>
+            <div id="germanText" class="translationTextBox" contenteditable ="true">
+            </div>
         </div>
         <div class="translationText">
             <label class="translationTextLabel" for="user input">Japanese words</label>
-            <textarea id="japaneseText" class="translationTextBox" disabled="true"></textarea>
+            <div id="japaneseText" class="translationTextBox" disabled="true"></div>
         </div>  
     </div>
-    <button id="testButton" onclick="getPhonetics()">Transcribe to IPA</button>
-    <button id="testButton" onclick="getKatakana()">Transcribe to Katakana</button>
+    <button id="testButton" class="button-12" onclick="getKatakana()">Transcribe to Katakana</button>
+
 </body>
 
 
