@@ -10,13 +10,15 @@ async function getKatakana() {
 
 async function getData(resource) {
     const germanText = document.getElementById("germanText");
+    console.log(germanText.getBoundingClientRect());
     const japaneseText = document.getElementById("japaneseText");
     japaneseText.value = '';
     try {
+        if (germanText.value == '') return;
         const response = await fetch(API_ADDRESS + resource, {
             method: "POST",
             body: JSON.stringify({
-                user_input: germanText.value
+                user_input: germanText.value == null ? germanText.value : ''
             }),
             headers: {
                 "Content-type": "application/json; charset=UTF-8"
