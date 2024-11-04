@@ -1,4 +1,4 @@
-const API_ADDRESS = "https://jptranscriptionapi.onrender.com";
+const API_ADDRESS = "https://jptranscriptionapi.onrender.com/";
 
 async function getPhonetics() {
     getData("phonetizer");
