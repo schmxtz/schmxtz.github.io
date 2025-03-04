@@ -33,7 +33,12 @@
     <hr>
     <h2>Implementation</h2>
     The first issue I ran into was, how do I get the phonetic representation of all German words. And is it possible to find something that is free to use and open-source?<br>
-    
+    My first idea was to use the python library <a href="https://github.com/rhasspy/gruut-ipa">gruut-ipa</a>, but I ran into some issues very early on. Some of
+    the transcriptions were not correct. I wanted to try to avoid that as much as possible, so I kept looking. Eventually I found out that <a href="https://www.wiktionary.org/">Wikitionary</a> has a 
+    broad database for German words including their phonetic representation and is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC license</a>.<br>
+    From <a href="https://kaikki.org/dictionary/rawdata.html">kaikki.org</a> (thank you very much for hosting a compressed extract of each language), I was able to download the
+    list of all words. I wrote a small script to parse it and only save the relevant data - the word and its phonetic representation - and decreased the file 
+    down to ~70MB. This is also very useful since it is small enough to represent the data as an in-memory dictionary. 
 
 </body>
 
