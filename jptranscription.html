@@ -6,6 +6,7 @@
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
     <link rel="stylesheet" href="style.css">
     <script type="text/javascript" src="index.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
 <body>
@@ -23,16 +24,27 @@
     <hr>
     <div class="translationComponent">
         <div class="translationText">
-            <label class="translationTextLabel" for="user input">German words</label>
+            <label class="translationTextLabel" for="user input">German (ドイツ語)</label>
             <div id="germanText" class="translationTextBox" contenteditable ="true" spellcheck="false">
             </div>
         </div>
         <div class="translationText">
-            <label class="translationTextLabel" for="user input">Japanese words</label>
-            <div id="japaneseText" class="translationTextBox" disabled="true" spellcheck="false"></div>
+            <label class="translationTextLabel" for="user input">Japanese (日本語)</label>
+            <div id="japaneseText" class="translationTextBox" contenteditable ="true" spellcheck="false"></div>
         </div>  
     </div>
-    <button id="testButton" class="button-12" onclick="getKatakana()">Transcribe to Katakana</button>
+    <div style="overflow: hidden; display: block; margin-top: 1%;">
+        <button id="testButton" class="button-12" onclick="getKatakana()">Transcribe to Katakana</button>
+        <div class="dropdown">
+            <button class="button-13">Translator <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+              <a href="#">Google Translator</a>
+              <a href="#">ChatGPT</a>
+              <a href="#">Link 3</a>
+            </div>
+        </div>
+    </div>
 
 </body>
 
