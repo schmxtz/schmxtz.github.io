@@ -88,20 +88,23 @@ td {
     left: 0;
     right: 0;
     height: 350px;
+    width: 100%;
 }
 
 .translationText {
     display: inline-block;
-    width: 47%;
+    width: 45%;
     height: 92%;
     background-color: #f7f7f7;
     padding: 1%;
     border-radius: 2%;
+    vertical-align: middle;
 }
 
 .translationTextLabel {
     float: left;
     margin-bottom: 2%;
+    height: 8%;
 }
 
 .translationTextBox {
@@ -111,7 +114,7 @@ td {
     font-size: 18px;
     resize: none;
     text-align: left;
-    padding: 1%;
+    padding: -2%;
     outline: 0px solid transparent;
     border-radius: 2%;
     border: 2px solid #111;
