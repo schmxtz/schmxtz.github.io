@@ -35,13 +35,13 @@
     </div>
     <div style="overflow: hidden; display: block; margin-top: 1%;">
         <button id="testButton" class="button-12" onclick="getKatakana()">Transcribe to Katakana</button>
-        <div class="dropdown">
-            <button class="button-13">Translator <i class="fa fa-caret-down"></i>
+        <div class="dropdown" id="translator-id">
+            <button class="button-13" value="1">Google Translator <i class="fa fa-caret-down"></i>
             </button>
             <div class="dropdown-content">
-              <a href="#">Google Translator</a>
-              <a href="#">ChatGPT</a>
-              <a href="#">DeepL</a>
+              <a href="#" id="1" class="dropdown-element">Google Translator</a>
+              <a href="#" id="2" class="dropdown-element">ChatGPT</a>
+              <!-- <a href="#">DeepL</a> -->
             </div>
         </div>
     </div>

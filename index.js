@@ -1,11 +1,39 @@
 const API_ADDRESS = "https://jptranscriptionapi.onrender.com/";
-document.addEventListener('mouseup', selectedTextHandler, false);
-document.onmousedown = () => {
+const ICON = "<i class=\"fa fa-caret-down\"></i>";
+// On load window loaded stuff
+window.addEventListener("load", (event) => {
+    // Init dropdown menu
+    const dropdownElements = document.getElementsByClassName("dropdown-element");
+    const buttonText = document.getElementsByClassName("button-13")[0];
+    for (let dropdownElement of dropdownElements) {
+        dropdownElement.addEventListener("click", (e) => dropdownClick(e.target, buttonText));
+    }
+
+    // Init text input stuff
+    const germanText = document.getElementById("germanText");
+    germanText.onpaste = (event) => {
+        event.preventDefault();
+        clipboardData = (event.originalEvent || event).clipboardData;
+        pastedData = clipboardData.getData('Text');
+        germanText.innerText = pastedData;
+    };
+
+    // Init this shit
+    document.addEventListener('mouseup', selectedTextHandler, false);
+    document.onmousedown = () => {
     if(document.contains(document.getElementById("share-snippet"))) {
         document.getElementById("share-snippet").remove();
         (window.getSelection ? window.getSelection() : document.selection).empty();
     }
 }
+});
+
+function dropdownClick(target, button) {
+    console.log(button.innerHTML);
+    button.id = target.id;
+    button.innerHTML = target.innerText + " " + ICON;
+}
+
 
 async function getPhonetics() {
     getData("phonetizer");
@@ -136,14 +164,3 @@ function selectedTextHandler(event) {
         document.body.insertAdjacentHTML('beforeend', '<button id="share-snippet" style="position: absolute; top: '+posY+'px; left: '+posX+'px;"> Text to speech </button>');
     }
 }
-
-setTimeout(() => {
-    const germanText = document.getElementById("germanText");
-    germanText.onpaste = (event) => {
-        event.preventDefault();
-        clipboardData = (event.originalEvent || event).clipboardData;
-        pastedData = clipboardData.getData('Text');
-        germanText.innerText = pastedData;
-    };
-}, 100);
-
