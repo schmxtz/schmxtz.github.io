@@ -22,31 +22,12 @@
         </div>
     </div>
     <hr>
-    <div class="translationComponent">
-        <div class="translationText">
-            <label class="translationTextLabel" for="user input">German (ドイツ語)</label>
-            <div id="de" class="translationTextBox" contenteditable ="true" spellcheck="false">
-            </div>
-        </div>
-        <i class="fa fa-arrows-h" aria-hidden="true"></i>
-        <div class="translationText">
-            <label class="translationTextLabel" for="user input">Japanese (日本語)</label>
-            <div id="ja" class="translationTextBox" contenteditable ="true" spellcheck="false"></div>
-        </div>  
-    </div>
-    <div style="overflow: hidden; display: block; margin-top: 1%;">
-        <button id="testButton" class="button-12" onclick="getData()">Translate</button>
-        <div class="dropdown" id="translator-id">
-            <button class="button-13" value="1">Google Translator <i class="fa fa-caret-down"></i>
-            </button>
-            <div class="dropdown-content">
-              <a href="#" id="1" class="dropdown-element">Google Translator</a>
-              <a href="#" id="2" class="dropdown-element">ChatGPT</a>
-              <!-- <a href="#">DeepL</a> -->
-            </div>
-        </div>
-    </div>
 
+    <div class="translate-component">
+        <div class="translate-input" style="flex-grow: 10;"></div>
+        <i class="fa fa-arrows-h" aria-hidden="true" style="flex-shrink: 0"></i>
+        <div class="translate-input" style="flex-grow: 10;"></div>
+    </div>
 </body>
 
 
