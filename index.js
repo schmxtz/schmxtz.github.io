@@ -36,9 +36,12 @@ window.addEventListener("load", (event) => {
     // };
 });
 
-function dropdownClick(target, button) {
-    button.id = target.id;
-    button.innerHTML = target.innerText + " " + ICON;
+function switchLang() {
+    const germanBox = document.getElementById("de");
+    const japaneseBox = document.getElementById("ja");
+    const temp = germanBox.style.order;
+    germanBox.style.order = japaneseBox.style.order;
+    japaneseBox.style.order = temp;
 }
 
 async function getData() {
