@@ -1,5 +1,6 @@
 const API_ADDRESS = "https://jptranscriptionapi.onrender.com/";
 const ICON = "<i class=\"fa fa-caret-down\"></i>";
+const ICON2 = "<i class=\"fa fa-arrow-circle-right\" aria-hidden=\"true\"></i>";
 let REQUEST = {
     input_text: undefined,
     src_lang: 'de',
@@ -39,39 +40,62 @@ window.addEventListener("load", (event) => {
 function switchLang() {
     const germanBox = document.getElementById("de");
     const japaneseBox = document.getElementById("ja");
+    const translateButton = document.getElementById("translateButton");
     const temp = germanBox.style.order;
     germanBox.style.order = japaneseBox.style.order;
     japaneseBox.style.order = temp;
+    translateButton.innerHTML = japaneseBox.style.order == 1 ? "Translate Japanese " + ICON2 + " German" : "Translate German " + ICON2 + " Japanese"; 
+}
+
+function invertColor() {
+    const html = document.getElementsByTagName("html")[0];
+    if (html.classList.contains('normal')) html.classList = ['inverted'];
+    else html.classList = ['normal'];
 }
 
 async function getData() {
-    REQUEST.input_text = document.getElementById(REQUEST.src_lang).innerText;
-    console.log(REQUEST);
+    const germanBoxOrder = document.getElementById("de").style.order;
+    let src_lang, tar_lang, input_text;
+    const germanInput = document.getElementById("de-in");
+    const japaneseInput = document.getElementById("ja-in");
+    if (germanBoxOrder == 1) {
+        src_lang = 'de';
+        tar_lang = 'ja';
+        input_text = germanInput.innerText;
+    } else {
+        src_lang = 'ja';
+        tar_lang = 'de';
+        input_text = japaneseInput.innerText;
+    }
     try {
-        // console.log()
-        // if (germanText.innerText == '') return;
-        // const response = await fetch(API_ADDRESS + resource, {
-        //     method: "POST",
-        //     body: JSON.stringify({
-        //         user_input: germanText.innerText != null ? germanText.innerText : ' '
-        //     }),
-        //     headers: {
-        //         "Content-type": "application/json; charset=UTF-8"
-        //     }
-        // });
-        // if (!response.ok) {
-        //     throw new Error(`Response status: ${response.status}`);
-        // }
-        // const json = await response.json();
-        // // Reset text
+        if (input_text == '') return;
+        const response = await fetch(API_ADDRESS + 'transcribe', {
+            method: "POST",
+            body: JSON.stringify({
+                input_text: input_text,
+                engine_name: 'google',
+                src_lang: src_lang,
+                tar_lang: tar_lang
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+        }
+        const json = await response.json();
+        if (germanBoxOrder == 1) {
+            japaneseInput.innerHTML = json.output_text
+        } else {
+            germanInput.innerHTML = json.output_text;
+        }
+        // Reset text
         // germanText.replaceChildren();
         // japaneseText.replaceChildren();
         // for (let i = 0; i < json.length; i++) {
         //     var germanWord = addWord(json[i][0], i);
         //     var japaneseWord = addWord(json[i][3], i);
-        //     addListeners(germanWord, japaneseWord);
-        //     germanText.appendChild(germanWord);
-        //     japaneseText.appendChild(japaneseWord);
         //     if (i != json.length - 1 && json[i + 1][1].localeCompare("PUNCT") != 0) {
         //         japaneseText.appendChild(addPunct(" "));
         //         germanText.appendChild(addPunct(" "));
@@ -83,14 +107,12 @@ async function getData() {
     }
 }
 
-// function addWord(text, id) {
-//     let newElement = document.createElement("span");
-//     newElement.innerText = text;
-//     newElement.id = id;
-
-
-//     return newElement;
-// }
+function addWord(text, id) {
+    let newElement = document.createElement("span");
+    newElement.innerText = text;
+    newElement.id = id;
+    return newElement;
+}
 
 // function addPunct(punct) {
 //     let newElement = document.createElement("span");

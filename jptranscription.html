@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html class="normal">
 
 <head>
     <title>JPTranscription</title>
@@ -19,6 +19,8 @@
             <a href="jptranscription.html">jptranscription</a>
             <span class="separator">|</span>
             <a href="aboutme.html">about me</a>
+            <span class="separator">|</span>
+            <button onclick="invertColor()"><i class="fa fa-adjust fa-2x" aria-hidden="true"></i></button>
         </div>
     </div>
     <hr>
@@ -26,7 +28,7 @@
     <div class="translate-component">
         <div id="de" class="translate-input-wrapper" style="order: 1" >
             <label style="margin-bottom: 2%;">German</label>
-            <div contenteditable="true" class="translate-input">
+            <div id="de-in" contenteditable="true" class="translate-input">
 
             </div> 
         </div>
@@ -35,11 +37,12 @@
         </div>
         <div id="ja" class="translate-input-wrapper" style="order: 3">
             <label style="margin-bottom: 2%;">Japanese</label>
-            <div contenteditable="true" class="translate-input">
+            <div id="ja-in" contenteditable="true" class="translate-input">
 
             </div> 
         </div>
     </div>
+    <button id="translateButton" style="font-family: 'Lucida Console', monospace; padding: 1%; font-size: 18px;" onclick="getData()">Translate German <i class="fa fa-arrow-circle-right" aria-hidden="true"></i> Japanese</button>
 </body>
 
 
