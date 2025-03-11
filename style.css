@@ -71,6 +71,7 @@ td {
 .translate-component {
     display: flex;
     height: 60%;
+    font-size: 16px;
 }
 
 .translate-input-wrapper {
@@ -96,4 +97,17 @@ td {
 }
 .inverted {
     filter: invert(1);
+}
+
+span :not(.selectable-all) {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.selectable-all {
+    -webkit-user-select: all;
+    -moz-user-select: all;
+    -ms-user-select: all;
+    user-select: all;
 }

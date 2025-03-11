@@ -58,6 +58,7 @@ async function getData() {
     let src_lang, tar_lang, input_text;
     const germanInput = document.getElementById("de-in");
     const japaneseInput = document.getElementById("ja-in");
+
     if (germanBoxOrder == 1) {
         src_lang = 'de';
         tar_lang = 'ja';
@@ -67,6 +68,7 @@ async function getData() {
         tar_lang = 'de';
         input_text = japaneseInput.innerText;
     }
+
     try {
         if (input_text == '') return;
         const response = await fetch(API_ADDRESS + 'transcribe', {
@@ -81,44 +83,52 @@ async function getData() {
                 "Content-type": "application/json; charset=UTF-8"
             }
         });
+
         if (!response.ok) {
             throw new Error(`Response status: ${response.status}`);
         }
         const json = await response.json();
+
         if (germanBoxOrder == 1) {
             japaneseInput.innerHTML = json.output_text
-        } else {
-            germanInput.innerHTML = json.output_text;
-        }
-        // Reset text
-        // germanText.replaceChildren();
-        // japaneseText.replaceChildren();
-        // for (let i = 0; i < json.length; i++) {
-        //     var germanWord = addWord(json[i][0], i);
-        //     var japaneseWord = addWord(json[i][3], i);
-        //     if (i != json.length - 1 && json[i + 1][1].localeCompare("PUNCT") != 0) {
-        //         japaneseText.appendChild(addPunct(" "));
-        //         germanText.appendChild(addPunct(" "));
-        //     }
-
-        // }
+        } 
+        insertGermanKatakana(json['phonetics'], germanInput);
     } catch (error) {
         console.error(error.message);
     }
 }
 
-function addWord(text, id) {
-    let newElement = document.createElement("span");
-    newElement.innerText = text;
-    newElement.id = id;
-    return newElement;
+function insertGermanKatakana(phoneticList, germanInputElement) {
+    germanInputElement.replaceChildren();
+    for (let i = 0; i < phoneticList.length; i++) {
+        germanInputElement.appendChild(addWord(phoneticList[i]));
+        if (i != phoneticList.length - 1 && phoneticList[i + 1][1].localeCompare("PUNCT") != 0) {
+            germanInputElement.appendChild(addPunct(" "));
+        }
+    }
 }
 
-// function addPunct(punct) {
-//     let newElement = document.createElement("span");
-//     newElement.innerText = punct;
-//     return newElement;
-// }
+function addWord(text) {
+    let wrapper = document.createElement("span");
+    wrapper.style.display = "inline-block";
+    wrapper.style.marginBottom = "1%";
+    let german = document.createElement("span");
+    german.style.display = "block";
+    let katakana = document.createElement("span");
+    katakana.style.display = "block";
+    german.classList = ['selectable-all'];
+    german.innerText = text[0];
+    katakana.innerText = text[3];
+    wrapper.appendChild(katakana);
+    wrapper.appendChild(german);
+    return wrapper;
+}
+
+function addPunct(punct) {
+    let newElement = document.createElement("span");
+    newElement.innerText = punct;
+    return newElement;
+}
 
 // function addListeners(germanWord, japaneseWord) {
 //     germanWord.otherWord = japaneseWord;
