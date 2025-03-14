@@ -101,40 +101,41 @@ async function getData() {
 function insertGermanKatakana(phoneticList, germanInputElement) {
     germanInputElement.replaceChildren();
     for (let i = 0; i < phoneticList.length; i++) {
-        germanInputElement.appendChild(addWord(phoneticList[i]));
-        if (i != phoneticList.length - 1 && phoneticList[i + 1][1].localeCompare("PUNCT") != 0) {
-            germanInputElement.appendChild(addPunct(" "));
-        }
+        germanInputElement.appendChild(
+            addWord(
+                phoneticList[i],
+                i != phoneticList.length - 1 && phoneticList[i + 1][1].localeCompare("PUNCT") != 0,
+                i
+            ));
     }
 }
 
-function addWord(text) {
+function addWord(text, addSpace, i) {
     let wrapper = document.createElement("span");
-    wrapper.style.display = "inline-block";
-    wrapper.style.marginBottom = "1%";
+    wrapper.classList = ['textWrapper'];
+    if (i % 2 == 0) wrapper.style.borderBottom = '2px solid rgb(30, 30, 30)';
+    else wrapper.style.borderBottom = '2px solid rgb(161, 161, 161)';
     let german = document.createElement("span");
-    german.style.display = "block";
+    german.classList = ['germanText'];
     let katakana = document.createElement("span");
-    katakana.style.display = "block";
-    german.classList = ['selectable-all'];
+    katakana.classList = ['katakanaText'];
     german.innerText = text[0];
     katakana.innerText = text[3];
     wrapper.appendChild(katakana);
     wrapper.appendChild(german);
+    if (!addSpace) wrapper.style.marginRight = 0;
     return wrapper;
 }
 
 function addPunct(punct) {
     let wrapper = document.createElement("span");
-    wrapper.style.display = "inline-block";
-    wrapper.style.marginBottom = "1%";
+    wrapper.classList = ['textWrapper'];
     let german = document.createElement("span");
-    german.style.display = "block";
+    german.classList = ['germanText'];
     let katakana = document.createElement("span");
-    katakana.style.display = "block";
-    german.classList = ['selectable-all'];
-    german.innerText = punct;
-    katakana.innerText = punct;
+    katakana.classList = ['katakanaText'];
+    german.innerText = " ";
+    katakana.innerText = " ";
     wrapper.appendChild(katakana);
     wrapper.appendChild(german);
     return wrapper;
@@ -194,8 +195,8 @@ function selectedTextHandler(event) {
     }
     if(window.getSelection().toString().length > 0) {
         const selection = window.getSelection().toString();
-        console.log(selection);
-        const words = [];
+        const germanWords = [];
+        const japaneseWords = [];
         selection.split('\n').forEach((word) => {
             let asciiCount = 0, uniCount = 0;
             if (!word) return;
@@ -204,9 +205,10 @@ function selectedTextHandler(event) {
                 if (char.charCodeAt() <= 255) asciiCount++;
                 else uniCount++;
             })
-            if (asciiCount >= uniCount) words.push(word);
+            if (asciiCount >= uniCount) germanWords.push(word);
+            else japaneseWords.push (word);
         })
-        const selectedText = words.join('');
+        
         const selectedElements = document.getSelection();
 
         if (!selectedElements || !selectedElements?.anchorNode || !selectedElements?.focusNode) return;
@@ -216,12 +218,6 @@ function selectedTextHandler(event) {
         x2 = selectedElements.focusNode.parentElement.offsetLeft;
         y2 = selectedElements.focusNode.parentElement.offsetTop;
 
-        console.log(selectedElements.baseNode.parentElement);
-        console.log(x1, y1, x2, y2);
-
-        // Find out how much (if any) user has scrolled
-        var scrollTop = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
-        
         const posX = Math.min(x1, x2);
         const posY = Math.min(y1, y2) - 30;
         // Append HTML to the body, create the "Tweet Selection" dialog
