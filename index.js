@@ -116,8 +116,8 @@ function insertGermanKatakana(phoneticList, germanInputElement) {
 function addWord(text, addSpace, i) {
     let wrapper = document.createElement("span");
     wrapper.classList = ['textWrapper'];
-    if (i % 2 == 0) wrapper.style.borderBottom = '2px solid rgb(30, 30, 30)';
-    else wrapper.style.borderBottom = '2px solid rgb(161, 161, 161)';
+    // if (i % 2 == 0) wrapper.style.borderBottom = '2px solid rgb(30, 30, 30)';
+    // else wrapper.style.borderBottom = '2px solid rgb(161, 161, 161)';
     let german = document.createElement("span");
     german.classList = ['germanText'];
     let katakana = document.createElement("span");
@@ -200,16 +200,16 @@ function selectedTextHandler(event) {
         const selectedElements = document.getSelection();
 
         const parent = document.getElementById("de");
-        const posX = parent.clientLeft + 50;
+        const posX = parent.clientLeft + 100;
         const posY = parent.clientTop + 90;
 
         // Append HTML to the body, create the "Tweet Selection" dialog
         document.body.insertAdjacentHTML('beforeend', 
             `
             <div id="share-snippet" class="popover" style="top: ${posY}px; left: ${+posX}px;">
-                Original / ドイツ語 <button onclick="germanTTS()"><i class="fa fa-volume-up" aria-hidden="true"></i></button> <button onclick="copyGerman()"><i class="fa fa-files-o" aria-hidden="true"></i></button>
+                Original/ドイツ語 <button onclick="germanTTS()"><i class="fa fa-volume-up" aria-hidden="true"></i></button> <button onclick="copyGerman()"><i class="fa fa-files-o" aria-hidden="true"></i></button>
                 <span class="separator">|</span>
-                Katakana / 片假名 <button onclick="japaneseTTS()"><i class="fa fa-volume-up" aria-hidden="true"></i></button> <button onclick="copyJapanese()"><i class="fa fa-files-o" aria-hidden="true"></i></button>
+                Katakana/カタカナ <button onclick="japaneseTTS()"><i class="fa fa-volume-up" aria-hidden="true"></i></button> <button onclick="copyJapanese()"><i class="fa fa-files-o" aria-hidden="true"></i></button>
             </div>
             `
             );
