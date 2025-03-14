@@ -199,17 +199,10 @@ function selectedTextHandler(event) {
     if(window.getSelection().toString().length > 0) {
         const selectedElements = document.getSelection();
 
-        if (!selectedElements || !selectedElements?.anchorNode || !selectedElements?.focusNode) return;
+        const parent = document.getElementById("de");
+        const posX = parent.clientLeft + 50;
+        const posY = parent.clientTop + 90;
 
-        x1 = selectedElements.anchorNode.parentElement.offsetLeft;
-        y1 = selectedElements.anchorNode.parentElement.offsetTop;
-        x2 = selectedElements.focusNode.parentElement.offsetLeft;
-        y2 = selectedElements.focusNode.parentElement.offsetTop;
-
-        // TODO FIX SCROLL
-
-        const posX = Math.min(x1, x2);
-        const posY = Math.min(y1, y2) - 50;
         // Append HTML to the body, create the "Tweet Selection" dialog
         document.body.insertAdjacentHTML('beforeend', 
             `
