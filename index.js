@@ -1,6 +1,6 @@
 const API_ADDRESS = "https://jptranscriptionapi.onrender.com/";
 const ICON = "<i class=\"fa fa-caret-down\"></i>";
-const ICON2 = "<i class=\"fa fa-arrow-circle-right\" aria-hidden=\"true\"></i>";
+const ICON2 = "<i class=\"fa fa-language\" aria-hidden=\"true\"></i>";
 let REQUEST = {
     input_text: undefined,
     src_lang: 'de',
@@ -29,13 +29,16 @@ window.addEventListener("load", (event) => {
 
     // Init text input stuff
     document.addEventListener('mouseup', selectedTextHandler, false);
-    document.onmousedown = () => {
-        if(document.contains(document.getElementById("share-snippet"))) {
-            document.getElementById("share-snippet").remove();
-            (window.getSelection ? window.getSelection() : document.selection).empty();
-        }
-    }
+    document.onmousedown = clearPopover;
 });
+
+function clearPopover(event) {
+    if (event.target.tagName.localeCompare("BUTTON") === 0 || event.target.tagName.localeCompare("I") === 0) return;
+    if(document.contains(document.getElementById("share-snippet"))) {
+        document.getElementById("share-snippet").remove();
+        (window.getSelection ? window.getSelection() : document.selection).empty();
+    }
+}
 
 function switchLang() {
     const germanBox = document.getElementById("de");
@@ -44,7 +47,7 @@ function switchLang() {
     const temp = germanBox.style.order;
     germanBox.style.order = japaneseBox.style.order;
     japaneseBox.style.order = temp;
-    translateButton.innerHTML = japaneseBox.style.order == 1 ? "Translate Japanese " + ICON2 + " German" : "Translate German " + ICON2 + " Japanese"; 
+    translateButton.innerHTML = japaneseBox.style.order == 1 ? "Translate (訳す) Japanese " + ICON2 + " German" : "Translate (訳す) German " + ICON2 + " Japanese"; 
 }
 
 function invertColor() {
@@ -141,74 +144,59 @@ function addPunct(punct) {
     return wrapper;
 }
 
-// function addListeners(germanWord, japaneseWord) {
-//     germanWord.otherWord = japaneseWord;
-//     japaneseWord.otherWord = germanWord;
-//     germanWord.onmouseenter = function (event) {
-//         this.className = "wordHoverStyling";
-//         this.otherWord.className = "wordHoverStyling";
-//         this.otherWord.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
-//         event.preventDefault();
-//     };
-//     germanWord.onmouseleave = function (event) {
-//         this.className = "";
-//         this.otherWord.className = "";
-//         event.preventDefault();
-//     };
+function getSelectionByLang(lang) {
+    const selection = window.getSelection().toString();
+    const germanWords = [];
+    const japaneseWords = [];
+    selection.split('\n').forEach((word) => {
+        let asciiCount = 0, uniCount = 0;
+        if (!word) return;
+        const chars = word.split('');
+        chars.forEach((char) => {
+            if (char.charCodeAt() <= 255) asciiCount++;
+            else uniCount++;
+        })
+        if (asciiCount >= uniCount) germanWords.push(word);
+        else japaneseWords.push (word);
+    })
+    return lang == 0 ? germanWords.join(" ") : japaneseWords.join(" ");
+}
 
-//     japaneseWord.onmouseenter = function (event) {
-//         this.className = "wordHoverStyling";
-//         this.otherWord.className = "wordHoverStyling";
-//         this.otherWord.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
-//         event.preventDefault();
-//     };
-//     japaneseWord.onmouseleave = function (event) {
-//         this.className = "";
-//         this.otherWord.className = "";
-//         event.preventDefault();
-//     };
+function germanTTS() {
+    const selection = getSelectionByLang(0);
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance();
+    u.text = selection;
+    u.lang = 'de-DE';
+    u.rate = 1.0;
+    speechSynthesis.speak(u);
+}
 
-//     germanWord.onclick = function (event) {
-//         window.speechSynthesis.cancel();
-//         var u = new SpeechSynthesisUtterance();
-//         u.text = event.srcElement.innerText;
-//         u.lang = 'de-DE';
-//         u.rate = 1.0;
-//         speechSynthesis.speak(u);
-//     }
+function japaneseTTS() {
+    const selection = getSelectionByLang(1);
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance();
+    u.text = selection;
+    u.lang = 'ja-JP';
+    u.rate = 1.0;
+    u.volume = 0.5;
+    speechSynthesis.speak(u);
+}
 
-//     japaneseWord.onclick = function (event) {
-//         window.speechSynthesis.cancel();
-//         var u = new SpeechSynthesisUtterance();
-//         u.text = event.srcElement.innerText;
-//         u.lang = 'ja-JP';
-//         u.rate = 1.0;
-//         u.volume = 0.5;
-//         speechSynthesis.speak(u);
-//     }
-// }
+function copyGerman() {
+    const selection = getSelectionByLang(0);
+    navigator.clipboard.writeText(selection);
+}
+
+window.copyJapanese = () => {
+    const selection = getSelectionByLang(1);
+    navigator.clipboard.writeText(selection);
+}
 
 // TODO: FIX BUTTON LOCATION
 function selectedTextHandler(event) {
-    if(document.contains(document.getElementById("share-snippet"))) {
-        document.getElementById("share-snippet").remove();
-    }
+    const selection = window.getSelection().toString();
     if(window.getSelection().toString().length > 0) {
-        const selection = window.getSelection().toString();
-        const germanWords = [];
-        const japaneseWords = [];
-        selection.split('\n').forEach((word) => {
-            let asciiCount = 0, uniCount = 0;
-            if (!word) return;
-            const chars = word.split('');
-            chars.forEach((char) => {
-                if (char.charCodeAt() <= 255) asciiCount++;
-                else uniCount++;
-            })
-            if (asciiCount >= uniCount) germanWords.push(word);
-            else japaneseWords.push (word);
-        })
-        
         const selectedElements = document.getSelection();
 
         if (!selectedElements || !selectedElements?.anchorNode || !selectedElements?.focusNode) return;
@@ -218,13 +206,23 @@ function selectedTextHandler(event) {
         x2 = selectedElements.focusNode.parentElement.offsetLeft;
         y2 = selectedElements.focusNode.parentElement.offsetTop;
 
+        // TODO FIX SCROLL
+
         const posX = Math.min(x1, x2);
-        const posY = Math.min(y1, y2) - 30;
+        const posY = Math.min(y1, y2) - 50;
         // Append HTML to the body, create the "Tweet Selection" dialog
         document.body.insertAdjacentHTML('beforeend', 
             `
-            <button id="share-snippet" style="position: absolute; top: ${posY}px; left: ${+posX}px;"> Text to speech </button>
+            <div id="share-snippet" class="popover" style="top: ${posY}px; left: ${+posX}px;">
+                Original / ドイツ語 <button onclick="germanTTS()"><i class="fa fa-volume-up" aria-hidden="true"></i></button> <button onclick="copyGerman()"><i class="fa fa-files-o" aria-hidden="true"></i></button>
+                <span class="separator">|</span>
+                Katakana / 片假名 <button onclick="japaneseTTS()"><i class="fa fa-volume-up" aria-hidden="true"></i></button> <button onclick="copyJapanese()"><i class="fa fa-files-o" aria-hidden="true"></i></button>
+            </div>
             `
             );
+    } else {
+        if(document.contains(document.getElementById("share-snippet"))) {
+            document.getElementById("share-snippet").remove();
+        }
     }
 }

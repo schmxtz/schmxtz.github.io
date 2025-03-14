@@ -31,7 +31,6 @@ svg {
 }
 
 .separator {
-    letter-spacing: -9px;
 }
 
 hr {
@@ -84,7 +83,7 @@ td {
     
     .translate-input {
         padding: 1%;
-        height: 90%;
+        height: 80%;
         box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px, rgb(51, 51, 51) 0px 0px 0px 3px;
         /* max-height: 100px; */
         overflow: auto;
@@ -159,7 +158,13 @@ td {
 
 .katakanaText {
     display: block;
-    
+}
+
+.popover {
+    position: absolute;
+    padding: 0.5%;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px, rgb(51, 51, 51) 0px 0px 0px 3px;
+    background-color: #dddddd;
 }
 
 
