@@ -28,13 +28,13 @@ window.addEventListener("load", (event) => {
     }
 
     // Init text input stuff
-    // const germanText = document.getElementById("germanText");
-    // germanText.onpaste = (event) => {
-    //     event.preventDefault();
-    //     clipboardData = (event.originalEvent || event).clipboardData;
-    //     pastedData = clipboardData.getData('Text');
-    //     germanText.innerText = pastedData;
-    // };
+    document.addEventListener('mouseup', selectedTextHandler, false);
+    document.onmousedown = () => {
+        if(document.contains(document.getElementById("share-snippet"))) {
+            document.getElementById("share-snippet").remove();
+            (window.getSelection ? window.getSelection() : document.selection).empty();
+        }
+    }
 });
 
 function switchLang() {
@@ -125,9 +125,19 @@ function addWord(text) {
 }
 
 function addPunct(punct) {
-    let newElement = document.createElement("span");
-    newElement.innerText = punct;
-    return newElement;
+    let wrapper = document.createElement("span");
+    wrapper.style.display = "inline-block";
+    wrapper.style.marginBottom = "1%";
+    let german = document.createElement("span");
+    german.style.display = "block";
+    let katakana = document.createElement("span");
+    katakana.style.display = "block";
+    german.classList = ['selectable-all'];
+    german.innerText = punct;
+    katakana.innerText = punct;
+    wrapper.appendChild(katakana);
+    wrapper.appendChild(german);
+    return wrapper;
 }
 
 // function addListeners(germanWord, japaneseWord) {
@@ -178,30 +188,47 @@ function addPunct(punct) {
 // }
 
 // TODO: FIX BUTTON LOCATION
-// function selectedTextHandler(event) {
-//     if(document.contains(document.getElementById("share-snippet"))) {
-//         document.getElementById("share-snippet").remove();
-//     }
-//     // Check if any text was selected
-//     if(window.getSelection().toString().length > 0) {
-//         // Find out how much (if any) user has scrolled
-//         var scrollTop = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
-        
-//         // Get cursor position
-//         const posX = event.clientX - 110;
-//         const posY = event.clientY + 20 + scrollTop;
-      
-//         // Create Twitter share URL
-        
-//         // Append HTML to the body, create the "Tweet Selection" dialog
-//         document.body.insertAdjacentHTML('beforeend', '<button id="share-snippet" style="position: absolute; top: '+posY+'px; left: '+posX+'px;"> Text to speech </button>');
-//     }
-// }
+function selectedTextHandler(event) {
+    if(document.contains(document.getElementById("share-snippet"))) {
+        document.getElementById("share-snippet").remove();
+    }
+    if(window.getSelection().toString().length > 0) {
+        const selection = window.getSelection().toString();
+        console.log(selection);
+        const words = [];
+        selection.split('\n').forEach((word) => {
+            let asciiCount = 0, uniCount = 0;
+            if (!word) return;
+            const chars = word.split('');
+            chars.forEach((char) => {
+                if (char.charCodeAt() <= 255) asciiCount++;
+                else uniCount++;
+            })
+            if (asciiCount >= uniCount) words.push(word);
+        })
+        const selectedText = words.join('');
+        const selectedElements = document.getSelection();
 
-// document.addEventListener('mouseup', selectedTextHandler, false);
-// document.onmousedown = () => {
-// if(document.contains(document.getElementById("share-snippet"))) {
-//     document.getElementById("share-snippet").remove();
-//     (window.getSelection ? window.getSelection() : document.selection).empty();
-// }
-// }
+        if (!selectedElements || !selectedElements?.anchorNode || !selectedElements?.focusNode) return;
+
+        x1 = selectedElements.anchorNode.parentElement.offsetLeft;
+        y1 = selectedElements.anchorNode.parentElement.offsetTop;
+        x2 = selectedElements.focusNode.parentElement.offsetLeft;
+        y2 = selectedElements.focusNode.parentElement.offsetTop;
+
+        console.log(selectedElements.baseNode.parentElement);
+        console.log(x1, y1, x2, y2);
+
+        // Find out how much (if any) user has scrolled
+        var scrollTop = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+        
+        const posX = Math.min(x1, x2);
+        const posY = Math.min(y1, y2) - 30;
+        // Append HTML to the body, create the "Tweet Selection" dialog
+        document.body.insertAdjacentHTML('beforeend', 
+            `
+            <button id="share-snippet" style="position: absolute; top: ${posY}px; left: ${+posX}px;"> Text to speech </button>
+            `
+            );
+    }
+}
