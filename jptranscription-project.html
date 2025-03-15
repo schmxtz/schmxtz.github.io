@@ -45,11 +45,23 @@
     database and is much faster for word lookups. <br>
     Now I started making the mapping for phonetic chunks to their Katakana equivalent. I created an algorithm which greedily tries to match the longest possible
     phonetic chunk. The phonetic representation for the word "danke" is "ˈdaŋkə". The first character can be ignored as it just tells the reader to put put a stress
-    on the start. Then the next longest chunks are "da", "ŋ" and "kə", which maps to "ダ" (da), "ン" (n) and "ケ" (ke).
-    <hr>
-    Design inspired by the site <a href="https://jisho.org/search/%E3%83%95%E3%83%BC%E3%83%90%E3%83%BC%E5%AE%B6%E3%81%AF%E3%82%A6%E3%82%A3%E3%83%BC%E3%83%B3%E3%81%AE%E8%BF%91%E3%81%8F%E3%81%AB%E4%BD%8F%E3%82%93%E3%81%A7%E3%81%84%E3%81%BE%E3%81%99%E3%80%82">jisho.org</a>, with placing the
-    way how to read the word, above the word itself. I will add more documentation in the near future.
+    on the start. Then the next longest chunks are "da", "ŋ" and "kə", which maps to "ダ" (da), "ン" (n) and "ケ" (ke). The design was inspired by the site <a href="https://jisho.org/search/%E3%83%95%E3%83%BC%E3%83%90%E3%83%BC%E5%AE%B6%E3%81%AF%E3%82%A6%E3%82%A3%E3%83%BC%E3%83%B3%E3%81%AE%E8%BF%91%E3%81%8F%E3%81%AB%E4%BD%8F%E3%82%93%E3%81%A7%E3%81%84%E3%81%BE%E3%81%99%E3%80%82">jisho.org</a>, with placing the
+    way how to read the word, above the word itself.
 
+    <hr>
+    <h2>External dependencies</h2>
+    <h3><a href="https://github.com/schmxtz/jptranscription">jptranscription</a></h3>
+    In the main core logic part of my application I only have one external dependency (two if you include the word dictionary list) which is a <a href="https://pypi.org/project/split-words/">library</a> to split compound-nouns into their respective "base nouns". This is needed because
+    Germans love to put many nouns together to create new words. Usually those are not in the dictionary which is why I need to split them into their original parts. I will implement this
+    myself in the future.
+    <h3><a href="https://github.com/schmxtz/jptranscriptionapi">jptranscriptionapi</a></h3>
+    For the API I'm using fastapi because it's fast and easy to deploy. Obviously the library above is one dependency. I'm also using <a href="https://pypi.org/project/spacy/">spacy</a>, which is a NLP libary that performs
+    the word splitting for me. This is not a trivial problem for German due to its punctuation rules and other weird grammar. I'm also using <a href="https://pypi.org/project/num2words/">num2words</a> to transcribe decimal numbers
+    to their written equivalent. And lastly I'm using <a href="https://pypi.org/project/deep-translator/">deep-translator</a>, which stems the API translation calls for me.
+    <h3><a href="https://github.com/schmxtz/schmxtz.github.io">schmxtz.github.io</a></h3>
+    The website itself is written entirely in plain HTML, javascript and css. I like simplicity and performance, so I avoided using any web frameworks. I'm working with Angular, Ionic and Capacitor for my work,
+    so I wasn't very interested in using it here too.
+    <br><br><br><br>
 </body>
 
 </html>
