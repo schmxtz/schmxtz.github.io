@@ -61,6 +61,7 @@ async function getData() {
     let src_lang, tar_lang, input_text;
     const germanInput = document.getElementById("de-in");
     const japaneseInput = document.getElementById("ja-in");
+    const element = document.getElementById("engineSelection");
 
     if (germanBoxOrder == 1) {
         src_lang = 'de';
@@ -78,7 +79,7 @@ async function getData() {
             method: "POST",
             body: JSON.stringify({
                 input_text: input_text,
-                engine_name: 'google',
+                engine_name: element.value,
                 src_lang: src_lang,
                 tar_lang: tar_lang
             }),
