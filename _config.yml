@@ -1,0 +1,29 @@
+title: schmxtz
+description: Notes to self, published in case someone else finds them useful.
+url: "https://schmxtz.github.io"
+baseurl: ""
+github_username: schmxtz
+
+permalink: /blog/:year/:month/:day/:title.html
+timezone: Europe/Luxembourg
+
+markdown: kramdown
+highlighter: rouge
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - .vscode
+  - vendor

@@ -1,39 +1,24 @@
-<!DOCTYPE html>
-<html>
+---
+layout: default
+---
+<p class="tagline">{{ site.description }}</p>
 
-<head>
-    <title>JPTranscription</title>
-    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-    <link rel="stylesheet" href="style.css">
-    <script type="text/javascript" src="index.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-</head>
+<h2 class="section-title">Posts</h2>
+<ul class="post-list">
+  {%- for post in site.posts %}
+  <li>
+    <span class="meta">{{ post.date | date: "%b %-d, %Y" }}</span>
+    <a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
+  </li>
+  {%- endfor %}
+</ul>
 
-<body>
-    <div class="header">
-        <div class="links-container">
-            <a href="index.html">home</a>
-            <span class="separator">|</span>
-            <a href="https://github.com/schmxtz">github</a>
-            <span class="separator">|</span>
-            <a href="jptranscription.html">jptranscription</a>
-            <span class="separator">|</span>
-            <a href="aboutme.html">about me</a>
-            <span class="separator">|</span>
-            <button onclick="invertColor()"><i class="fa fa-adjust fa-2x" aria-hidden="true"></i></button>
-        </div>
-    </div>
-    <hr>
-    <h2><a href="jptranscription-project.html">Japanese Transcription</a></h2>
-    This page is dedicated to showcase the <b>projects</b> I'm working on. My latest project is called 
-    <a href="https://github.com/schmxtz/jptranscription">jptranscription</a>. <br><br> 
-    It uses the international phonetic alphabet to
-    transcribe German words into Japanese characters (<a href="https://en.wikipedia.org/wiki/Katakana#Writing_system">Katakana</a>). This way native Japanese are able to read German text somewhat close to
-    what it would sound like if they knew German. It uses a custom lookup-table that I made to map from phonetic blocks to their Katakana representation.<br><br>
-    I made an API that uses this library and a tokenizer to transcribe each word into either its IPA or Katakana representation. On <a href="jptranscription-project.html">this</a> page I explained my progress.
-    <br><br>
-    I also added a translation feature, because friends told me it would make more sense to directly incorporate that too.
-    <hr>    
-</body>
+<h2 class="section-title">Tools</h2>
+<ul class="post-list">
+  <li>
+    <span class="meta">sleep</span>
+    <a href="{{ '/cognitive-shuffle/' | relative_url }}">Cognitive shuffle: random words to fall asleep to</a>
+  </li>
+</ul>
 
-</html>
+<p class="rss">subscribe via <a href="{{ '/feed.xml' | relative_url }}">rss</a></p>

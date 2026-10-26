@@ -1,0 +1,283 @@
+---
+title: Cognitive shuffle
+description: Random, unrelated words shown one at a time to help you fall asleep.
+permalink: /cognitive-shuffle/
+layout: null
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d0d0e">
+  <link rel="icon" href="{{ '/images/favicon.ico' | relative_url }}">
+  {% seo %}
+  <style>
+    :root {
+      --bg: #0d0d0e;
+      --text: #b9b4aa;
+      --dim: #6e6a63;
+      --faint: #3a3936;
+      --rule: #232322;
+      --accent: #9fb6cf;
+      --serif: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+      --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--serif);
+      font-size: 18px;
+      line-height: 1.55;
+    }
+
+    [hidden] { display: none !important; }
+
+    a { color: var(--accent); text-underline-offset: 2px; }
+
+    /* setup */
+
+    #setup {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 40px 16px 56px;
+    }
+
+    .top {
+      font-family: var(--mono);
+      font-size: 14px;
+      margin-bottom: 40px;
+    }
+    .top a { color: var(--dim); text-decoration: none; }
+    .top a:hover { color: var(--text); }
+
+    h1 { font-size: 30px; font-weight: 600; margin: 0 0 10px; color: #d8d3c9; }
+
+    .lead { color: var(--dim); margin: 0 0 32px; }
+
+    .field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 0;
+      border-top: 1px solid var(--rule);
+    }
+    .field:last-of-type { border-bottom: 1px solid var(--rule); }
+
+    .field label { flex: 1; }
+    .field small { display: block; color: var(--dim); font-size: 14px; }
+
+    .range { display: flex; align-items: center; gap: 12px; }
+    output { font-family: var(--mono); font-size: 14px; min-width: 3.5em; text-align: right; }
+
+    input[type="range"] { width: 140px; accent-color: var(--accent); }
+    input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); }
+
+    select {
+      background: #171718;
+      color: var(--text);
+      border: 1px solid var(--faint);
+      border-radius: 4px;
+      padding: 6px 8px;
+      font: 15px var(--mono);
+      max-width: 220px;
+    }
+
+    #start {
+      display: block;
+      width: 100%;
+      margin: 32px 0 16px;
+      padding: 16px;
+      background: #1b1c1e;
+      color: #e4dfd5;
+      border: 1px solid var(--faint);
+      border-radius: 6px;
+      font: 600 18px var(--serif);
+      cursor: pointer;
+    }
+    #start:hover { background: #222326; }
+
+    .deck {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--dim);
+    }
+    .deck button {
+      background: none;
+      border: 0;
+      padding: 0;
+      font: inherit;
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      cursor: pointer;
+    }
+
+    details { margin-top: 36px; color: var(--dim); font-size: 16px; }
+    summary { cursor: pointer; color: var(--text); }
+    details p { margin: 10px 0 0; }
+
+    @media (max-width: 420px) {
+      input[type="range"] { width: 110px; }
+    }
+
+    /* session */
+
+    #session {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #word {
+      padding: 0 16px;
+      text-align: center;
+      font-size: clamp(36px, 9vw, 72px);
+      color: #a8a399;
+      opacity: 0;
+      transition: opacity 0.45s ease;
+      overflow-wrap: anywhere;
+    }
+    #word.visible { opacity: 1; }
+
+    #status {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      transform: translateY(-50%);
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 15px;
+      letter-spacing: 0.12em;
+      color: var(--dim);
+      pointer-events: none;
+    }
+
+    .bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--faint);
+    }
+
+    #hint { transition: opacity 1.5s ease; }
+    #hint.faded { opacity: 0; }
+
+    #stop {
+      background: none;
+      border: 0;
+      padding: 4px 0;
+      font: inherit;
+      color: var(--faint);
+      cursor: pointer;
+    }
+    #stop:hover { color: var(--dim); }
+  </style>
+</head>
+<body>
+  <div id="setup">
+    <div class="top"><a href="{{ '/' | relative_url }}">&larr; {{ site.title }}</a></div>
+
+    <h1>Cognitive shuffle</h1>
+    <p class="lead">
+      Lie down and let a random word appear every few seconds. Picture each one
+      briefly, then let it go. The words are deliberately unrelated, so your mind
+      has nothing to build a train of thought on.
+    </p>
+
+    <div class="field">
+      <label for="seconds">Time per word<small>About 8 seconds is a good start</small></label>
+      <span class="range">
+        <input id="seconds" type="range" min="3" max="30" step="1" value="8">
+        <output id="seconds-out" for="seconds">8 s</output>
+      </span>
+    </div>
+
+    <div class="field">
+      <label for="minutes">Session length<small>Stops on its own when time is up</small></label>
+      <select id="minutes">
+        <option value="5">5 min</option>
+        <option value="10">10 min</option>
+        <option value="15">15 min</option>
+        <option value="20">20 min</option>
+        <option value="30">30 min</option>
+        <option value="45">45 min</option>
+        <option value="60">60 min</option>
+        <option value="0">Until I stop</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="show">Show words<small>Turn off to keep the screen black</small></label>
+      <input id="show" type="checkbox" checked>
+    </div>
+
+    <div class="field">
+      <label for="speak">Read words aloud<small>For keeping your eyes closed</small></label>
+      <input id="speak" type="checkbox">
+    </div>
+
+    <div class="field" id="voice-row" hidden>
+      <label for="voice">Voice</label>
+      <select id="voice"></select>
+    </div>
+
+    <button id="start" type="button">Start</button>
+
+    <p class="deck"><span id="deck-info"></span> <button id="reset" type="button">reshuffle</button></p>
+
+    <details>
+      <summary>How it works</summary>
+      <p>
+        This is based on Luc Beaudoin's cognitive shuffle, also called serial diverse
+        imagining. Picturing a stream of unrelated, neutral things is close to what
+        the mind does as it drifts toward sleep. It also crowds out the worry and
+        planning that keep you awake.
+      </p>
+      <p>
+        The list has over a thousand concrete, everyday words, chosen to be easy for
+        non-native speakers too. They are drawn in a random order without repeats,
+        two words from the same category never appear back to back, and your place
+        in the list is remembered between sessions.
+      </p>
+      <p>
+        During a session: tap or press space to pause, press Esc or tap
+        "stop" to end it.
+      </p>
+    </details>
+  </div>
+
+  <div id="session" hidden>
+    <div id="word" aria-live="polite"></div>
+    <div id="status"></div>
+    <div class="bar">
+      <span id="clock"></span>
+      <span id="hint">tap to pause</span>
+      <button id="stop" type="button">stop</button>
+    </div>
+  </div>
+
+  <script src="{{ '/assets/js/shuffle-words.js' | relative_url }}"></script>
+  <script src="{{ '/assets/js/shuffle.js' | relative_url }}"></script>
+</body>
+</html>
