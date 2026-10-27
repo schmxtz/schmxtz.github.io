@@ -12,6 +12,15 @@ Use [Piper Recording Studio](https://github.com/rhasspy/piper-recording-studio).
 It runs locally in the browser, shows one sentence at a time and exports a
 dataset in the format Piper trains on.
 
+`make_prompts.py` builds the script to read: lines of shuffle words
+alternating with the studio's English sentences. Run the studio with
+`--prompts <that directory>` and pick "English (cognitive shuffle)". Read each
+word line slowly, with a pause after every word, the way the page should say
+them.
+
+When done, export the dataset with the studio's `export_dataset` module
+(`python -m export_dataset <recordings>/en-shuffle <dataset>`).
+
 - A quiet room, the same microphone and distance every session, no music.
 - Read in a calm, slow, sleepy tone. The model copies how you read, not just
   your voice.
