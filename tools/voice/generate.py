@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[2]
 WORDS_JS = ROOT / "assets" / "js" / "shuffle-words.js"
 
 # Text goes to the command on stdin; {model} and {out} are filled in per word.
-DEFAULT_CMD = "piper --model {model} --output_file {out}"
+DEFAULT_CMD = "piper -m {model} -f {out}"
 
 # Trim silence at both ends, then even out loudness so no word jumps out.
 FILTER = (

@@ -29,7 +29,7 @@ When done, export the dataset with the studio's `export_dataset` module
 
 ## 2. Train
 
-Fine-tune an existing English Piper checkpoint (for example `en_US-lessac`,
+Fine-tune an existing Piper checkpoint (for a British voice, `en_GB-northern_english_male`,
 medium quality, from the `rhasspy/piper-checkpoints` repository on Hugging Face)
 on the exported dataset instead of training from scratch. That needs far less
 data and time.
@@ -58,7 +58,7 @@ and `{out}` are filled in. A slower pace, for example:
 
 ```sh
 python tools/voice/generate.py --model my-voice.onnx \
-  --cmd "piper --model {model} --length_scale 1.2 --output_file {out}"
+  --cmd "piper -m {model} --length-scale 1.2 -f {out}"
 ```
 
 Listen through the clips and redo the ones that sound off:
