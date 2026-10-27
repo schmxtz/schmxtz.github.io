@@ -5,3 +5,8 @@ _site/
 .bundle/
 vendor/
 Gemfile.lock
+
+# Voice models stay private; only the rendered clips are published.
+*.onnx
+*.onnx.json
+*.ckpt

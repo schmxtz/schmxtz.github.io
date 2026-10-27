@@ -27,3 +27,4 @@ exclude:
   - README.md
   - .vscode
   - vendor
+  - tools

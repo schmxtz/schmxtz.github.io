@@ -143,6 +143,8 @@
   // ---- page --------------------------------------------------------------
 
   var $ = function (id) { return document.getElementById(id); };
+  var AUDIO_BASE = new URL("../audio/", document.currentScript.src).href;
+  var SILENCE = "data:audio/wav;base64,UklGRjQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YRAAAAAAAAAAAAAAAAAAAAAAAAAA";
   var deck = new Deck(loadWords(window.SHUFFLE_WORDS));
   var settings = Object.assign({}, DEFAULTS, load(STORAGE.settings, {}));
 
@@ -155,6 +157,8 @@
   };
 
   var run = null; // { elapsed, startedAt, paused, wordTimer, tickTimer, wakeLock }
+  var clips = null; // { label, words: { text: true } } once assets/audio/manifest.json has loaded
+  var player = new Audio();
 
   // settings form
 
@@ -164,7 +168,7 @@
     ui.minutes.value = String(settings.minutes);
     ui.speak.checked = settings.speak;
     ui.show.checked = settings.show;
-    ui.voiceRow.hidden = !settings.speak || !("speechSynthesis" in window);
+    ui.voiceRow.hidden = !settings.speak || (!clips && !("speechSynthesis" in window));
     renderDeckInfo();
   }
 
@@ -194,34 +198,60 @@
   ui.start.addEventListener("click", start);
 
   // voices
+  //
+  // The default voice ("") plays pre-rendered clips from assets/audio when they
+  // exist (see tools/voice) and falls back to the browser's speech otherwise.
 
   function englishVoices() {
     if (!("speechSynthesis" in window)) return [];
     return speechSynthesis.getVoices().filter(function (v) { return /^en(-|_|$)/i.test(v.lang); });
   }
 
+  function addOption(value, text) {
+    var o = document.createElement("option");
+    o.value = value; o.textContent = text;
+    ui.voice.appendChild(o);
+  }
+
   function fillVoices() {
     var voices = englishVoices();
     ui.voice.innerHTML = "";
-    var auto = document.createElement("option");
-    auto.value = ""; auto.textContent = "Default";
-    ui.voice.appendChild(auto);
-    voices.forEach(function (v) {
-      var o = document.createElement("option");
-      o.value = v.name; o.textContent = v.name + " (" + v.lang + ")";
-      ui.voice.appendChild(o);
-    });
-    ui.voice.value = voices.some(function (v) { return v.name === settings.voice; }) ? settings.voice : "";
+    addOption("", clips ? clips.label : "Default");
+    if (clips && voices.length) addOption("browser", "Browser default");
+    voices.forEach(function (v) { addOption(v.name, v.name + " (" + v.lang + ")"); });
+    var known = [].some.call(ui.voice.options, function (o) { return o.value === settings.voice; });
+    ui.voice.value = known ? settings.voice : "";
   }
 
-  if ("speechSynthesis" in window) {
-    fillVoices();
-    speechSynthesis.addEventListener("voiceschanged", fillVoices);
+  fillVoices();
+  if ("speechSynthesis" in window) speechSynthesis.addEventListener("voiceschanged", fillVoices);
+
+  fetch(AUDIO_BASE + "manifest.json")
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (m) {
+      if (!m || !Array.isArray(m.words) || !m.words.length) return;
+      clips = { label: m.label || "Recorded voice", words: {} };
+      m.words.forEach(function (w) { clips.words[w] = true; });
+      fillVoices();
+      renderSettings();
+    })
+    .catch(function () {});
+
+  function stopSpeech() {
+    player.pause();
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
   }
 
   function say(text) {
-    if (!settings.speak || !("speechSynthesis" in window)) return;
-    speechSynthesis.cancel();
+    if (!settings.speak) return;
+    stopSpeech();
+    if (clips && settings.voice === "" && clips.words[text]) {
+      player.src = AUDIO_BASE + encodeURIComponent(text) + ".mp3";
+      player.volume = 0.8;
+      player.play().catch(function () {});
+      return;
+    }
+    if (!("speechSynthesis" in window)) return;
     var u = new SpeechSynthesisUtterance(text);
     var voices = englishVoices();
     var chosen = voices.filter(function (v) { return v.name === settings.voice; })[0] ||
@@ -288,8 +318,12 @@
     ui.hint.classList.remove("faded");
     setTimeout(function () { ui.hint.classList.add("faded"); }, 4000);
     requestWakeLock();
-    // iOS only lets speech start inside a user gesture, so unlock it here.
-    if (settings.speak && "speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+    // iOS only lets speech and audio start inside a user gesture, so unlock both here.
+    if (settings.speak) {
+      player.src = SILENCE;
+      player.play().catch(function () {});
+      if ("speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+    }
     tick();
     run.tickTimer = setInterval(tick, 1000);
     showWord();
@@ -306,7 +340,7 @@
       run.elapsed = elapsed();
       run.paused = true;
       clearTimeout(run.wordTimer);
-      if ("speechSynthesis" in window) speechSynthesis.cancel();
+      stopSpeech();
       ui.word.classList.remove("visible");
       ui.status.textContent = "paused";
     }
@@ -327,7 +361,7 @@
     if (!run) return;
     clearTimeout(run.wordTimer);
     clearInterval(run.tickTimer);
-    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    stopSpeech();
     if (run.wakeLock) run.wakeLock.release().catch(function () {});
     run = null;
     ui.session.hidden = true;
