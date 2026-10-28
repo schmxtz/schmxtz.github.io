@@ -6,7 +6,7 @@
 
   var STORAGE = { settings: "shuffle.settings", order: "shuffle.order", pos: "shuffle.pos", hash: "shuffle.hash" };
   var RECENT_GUARD = 200; // words from the end of one pass kept away from the start of the next
-  var DEFAULTS = { seconds: 8, minutes: 15, speak: false, show: true, voice: "" };
+  var DEFAULTS = { seconds: 8, minutes: 15, speak: false, show: true };
 
   // ---- word list ---------------------------------------------------------
 
@@ -144,7 +144,7 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var AUDIO_BASE = new URL("../audio/", document.currentScript.src).href;
-  var SILENCE = "data:audio/wav;base64,UklGRjQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YRAAAAAAAAAAAAAAAAAAAAAAAAAA";
+  var FADE = 0.45; // seconds between one word fading out and the next appearing
   var deck = new Deck(loadWords(window.SHUFFLE_WORDS));
   var settings = Object.assign({}, DEFAULTS, load(STORAGE.settings, {}));
 
@@ -152,12 +152,12 @@
     setup: $("setup"), session: $("session"), word: $("word"),
     clock: $("clock"), hint: $("hint"), status: $("status"),
     seconds: $("seconds"), secondsOut: $("seconds-out"), minutes: $("minutes"),
-    speak: $("speak"), show: $("show"), voice: $("voice"), voiceRow: $("voice-row"),
+    speak: $("speak"), show: $("show"),
     deckInfo: $("deck-info"), reset: $("reset"), start: $("start"),
   };
 
-  var run = null; // { elapsed, startedAt, paused, wordTimer, tickTimer, wakeLock }
-  var clips = null; // { label, words: { text: true } } once assets/audio/manifest.json has loaded
+  var run = null; // { elapsed, startedAt, paused, audio, phase, word, wordTimer, tickTimer, wakeLock }
+  var clips = {}; // { text: true } for every word in assets/audio/manifest.json
   var player = new Audio();
 
   // settings form
@@ -168,7 +168,6 @@
     ui.minutes.value = String(settings.minutes);
     ui.speak.checked = settings.speak;
     ui.show.checked = settings.show;
-    ui.voiceRow.hidden = !settings.speak || (!clips && !("speechSynthesis" in window));
     renderDeckInfo();
   }
 
@@ -183,13 +182,12 @@
     settings.minutes = Number(ui.minutes.value);
     settings.speak = ui.speak.checked;
     settings.show = ui.show.checked;
-    settings.voice = ui.voice.value;
     save(STORAGE.settings, settings);
     renderSettings();
   }
 
   ["input", "change"].forEach(function (type) {
-    [ui.seconds, ui.minutes, ui.speak, ui.show, ui.voice].forEach(function (el) {
+    [ui.seconds, ui.minutes, ui.speak, ui.show].forEach(function (el) {
       el.addEventListener(type, readSettings);
     });
   });
@@ -197,69 +195,85 @@
   ui.reset.addEventListener("click", function () { deck.reset(); renderDeckInfo(); });
   ui.start.addEventListener("click", start);
 
-  // voices
+  // voice
   //
-  // The default voice ("") plays pre-rendered clips from assets/audio when they
-  // exist (see tools/voice) and falls back to the browser's speech otherwise.
-
-  function englishVoices() {
-    if (!("speechSynthesis" in window)) return [];
-    return speechSynthesis.getVoices().filter(function (v) { return /^en(-|_|$)/i.test(v.lang); });
-  }
-
-  function addOption(value, text) {
-    var o = document.createElement("option");
-    o.value = value; o.textContent = text;
-    ui.voice.appendChild(o);
-  }
-
-  function fillVoices() {
-    var voices = englishVoices();
-    ui.voice.innerHTML = "";
-    addOption("", clips ? clips.label : "Default");
-    if (clips && voices.length) addOption("browser", "Browser default");
-    voices.forEach(function (v) { addOption(v.name, v.name + " (" + v.lang + ")"); });
-    var known = [].some.call(ui.voice.options, function (o) { return o.value === settings.voice; });
-    ui.voice.value = known ? settings.voice : "";
-  }
-
-  fillVoices();
-  if ("speechSynthesis" in window) speechSynthesis.addEventListener("voiceschanged", fillVoices);
+  // Words are read from clips pre-rendered with a voice model (see tools/voice).
+  // With reading on, one audio element plays without a break: a short gap, the
+  // word, then silence for the rest of its time, each started when the last one
+  // ends. Phones keep a page running while it plays audio, so the session goes
+  // on with the screen locked, which timers alone would not.
 
   fetch(AUDIO_BASE + "manifest.json")
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (m) {
-      if (!m || !Array.isArray(m.words) || !m.words.length) return;
-      clips = { label: m.label || "Recorded voice", words: {} };
-      m.words.forEach(function (w) { clips.words[w] = true; });
-      fillVoices();
-      renderSettings();
+      if (m && Array.isArray(m.words)) m.words.forEach(function (w) { clips[w] = true; });
     })
     .catch(function () {});
 
-  function stopSpeech() {
-    player.pause();
-    if ("speechSynthesis" in window) speechSynthesis.cancel();
+  var silences = {};
+
+  // A silent WAV of about `seconds` length (in 50 ms steps), cached as a blob URL.
+  function silence(seconds) {
+    var ms = Math.max(100, Math.round(seconds * 20) * 50);
+    if (!silences[ms]) {
+      var rate = 8000, bytes = rate * ms / 1000 * 2;
+      var view = new DataView(new ArrayBuffer(44 + bytes));
+      var text = function (at, s) { for (var i = 0; i < s.length; i++) view.setUint8(at + i, s.charCodeAt(i)); };
+      text(0, "RIFF"); view.setUint32(4, 36 + bytes, true); text(8, "WAVE");
+      text(12, "fmt "); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+      view.setUint32(24, rate, true); view.setUint32(28, rate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+      text(36, "data"); view.setUint32(40, bytes, true);
+      silences[ms] = URL.createObjectURL(new Blob([view.buffer], { type: "audio/wav" }));
+    }
+    return silences[ms];
   }
 
-  function say(text) {
-    if (!settings.speak) return;
-    stopSpeech();
-    if (clips && settings.voice === "" && clips.words[text]) {
-      player.src = AUDIO_BASE + encodeURIComponent(text) + ".mp3";
-      player.volume = 0.8;
-      player.play().catch(function () {});
-      return;
+  function playSegment(phase, src) {
+    run.phase = phase;
+    player.src = src;
+    player.volume = 0.8;
+    player.play().catch(function () {});
+  }
+
+  // Runs whenever a segment ends: fade -> word -> rest -> fade -> ...
+  function nextSegment() {
+    if (!run || !run.audio || run.done) return;
+    if (run.phase === "fade") {
+      run.word = deck.next();
+      showText(run.word.text);
+      if (clips[run.word.text]) return playSegment("word", AUDIO_BASE + encodeURIComponent(run.word.text) + ".mp3");
+      return playSegment("rest", silence(settings.seconds - FADE));
     }
-    if (!("speechSynthesis" in window)) return;
-    var u = new SpeechSynthesisUtterance(text);
-    var voices = englishVoices();
-    var chosen = voices.filter(function (v) { return v.name === settings.voice; })[0] ||
-      voices.filter(function (v) { return v.default; })[0] || voices[0];
-    if (chosen) { u.voice = chosen; u.lang = chosen.lang; } else { u.lang = "en-US"; }
-    u.rate = 0.8;
-    u.volume = 0.8;
-    speechSynthesis.speak(u);
+    if (run.phase === "word") {
+      var spoken = isFinite(player.duration) ? player.duration : 0;
+      return playSegment("rest", silence(settings.seconds - FADE - spoken));
+    }
+    if (elapsed() >= sessionMs()) return finish();
+    hideText();
+    playSegment("fade", silence(FADE));
+  }
+
+  player.addEventListener("ended", nextSegment);
+  // A clip that fails to load just leaves its word unspoken.
+  player.addEventListener("error", function () { if (run && run.phase === "word") nextSegment(); });
+
+  // Pausing can also come from the lock screen, headphones or a phone call, so
+  // the session follows the player instead of the other way round.
+  player.addEventListener("pause", function () {
+    if (run && run.audio && !run.paused && !run.done && !player.ended) pause();
+  });
+  player.addEventListener("play", function () {
+    if (run && run.audio && run.paused && !run.done) resume();
+  });
+
+  function onMediaAction(action, handler) {
+    try { navigator.mediaSession.setActionHandler(action, handler); } catch (e) {}
+  }
+
+  if ("mediaSession" in navigator) {
+    onMediaAction("play", function () { if (run && run.paused) togglePause(); });
+    onMediaAction("pause", function () { if (run && !run.paused) togglePause(); });
+    onMediaAction("stop", stop);
   }
 
   // session
@@ -287,17 +301,23 @@
     }
   }
 
+  function showText(text) {
+    ui.word.textContent = settings.show ? text : "";
+    ui.word.classList.add("visible");
+  }
+
+  function hideText() { ui.word.classList.remove("visible"); }
+
+  // Without reading aloud, timers pace the words.
   function showWord() {
     if (!run || run.paused) return;
     if (elapsed() >= sessionMs()) return finish();
     var w = deck.next();
-    ui.word.classList.remove("visible");
+    hideText();
     setTimeout(function () {
       if (!run || run.paused || run.done) return;
-      ui.word.textContent = settings.show ? w.text : "";
-      ui.word.classList.add("visible");
-      say(w.text);
-    }, 450);
+      showText(w.text);
+    }, FADE * 1000);
     run.wordTimer = setTimeout(showWord, settings.seconds * 1000);
   }
 
@@ -310,7 +330,7 @@
 
   function start() {
     readSettings();
-    run = { elapsed: 0, startedAt: performance.now(), paused: false };
+    run = { elapsed: 0, startedAt: performance.now(), paused: false, audio: settings.speak };
     ui.setup.hidden = true;
     ui.session.hidden = false;
     ui.status.textContent = "";
@@ -318,31 +338,43 @@
     ui.hint.classList.remove("faded");
     setTimeout(function () { ui.hint.classList.add("faded"); }, 4000);
     requestWakeLock();
-    // iOS only lets speech and audio start inside a user gesture, so unlock both here.
-    if (settings.speak) {
-      player.src = SILENCE;
-      player.play().catch(function () {});
-      if ("speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(""));
-    }
     tick();
     run.tickTimer = setInterval(tick, 1000);
-    showWord();
+    if (run.audio) {
+      if ("mediaSession" in navigator && window.MediaMetadata) {
+        navigator.mediaSession.metadata = new MediaMetadata({ title: "Cognitive shuffle" });
+      }
+      // iOS only lets audio start inside a user gesture, so the first segment starts here.
+      playSegment("fade", silence(FADE));
+    } else {
+      showWord();
+    }
+  }
+
+  function pause() {
+    run.elapsed = elapsed();
+    run.paused = true;
+    clearTimeout(run.wordTimer);
+    hideText();
+    ui.status.textContent = "paused";
+  }
+
+  function resume() {
+    run.paused = false;
+    run.startedAt = performance.now();
+    ui.status.textContent = "";
+    if (!run.audio) showWord();
+    else if (run.word && run.phase !== "fade") showText(run.word.text);
   }
 
   function togglePause() {
     if (!run || run.done) return;
-    if (run.paused) {
-      run.paused = false;
-      run.startedAt = performance.now();
-      ui.status.textContent = "";
-      showWord();
+    if (run.audio) {
+      if (run.paused) player.play().catch(function () {}); else player.pause();
+    } else if (run.paused) {
+      resume();
     } else {
-      run.elapsed = elapsed();
-      run.paused = true;
-      clearTimeout(run.wordTimer);
-      stopSpeech();
-      ui.word.classList.remove("visible");
-      ui.status.textContent = "paused";
+      pause();
     }
   }
 
@@ -351,7 +383,8 @@
     run.done = true;
     clearTimeout(run.wordTimer);
     clearInterval(run.tickTimer);
-    ui.word.classList.remove("visible");
+    player.pause();
+    hideText();
     ui.clock.textContent = "";
     ui.status.textContent = "good night";
     if (run.wakeLock) run.wakeLock.release().catch(function () {});
@@ -361,7 +394,7 @@
     if (!run) return;
     clearTimeout(run.wordTimer);
     clearInterval(run.tickTimer);
-    stopSpeech();
+    player.pause();
     if (run.wakeLock) run.wakeLock.release().catch(function () {});
     run = null;
     ui.session.hidden = true;

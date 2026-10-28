@@ -1,7 +1,8 @@
 # Cognitive shuffle in my own voice
 
 The shuffle page plays `assets/audio/<word>.mp3` for every word listed in
-`assets/audio/manifest.json` and uses the browser's speech for the rest. The
+`assets/audio/manifest.json`. Words without a clip stay silent, so render new
+words after editing the list. The
 clips come from a [Piper](https://github.com/OHF-Voice/piper1-gpl) voice model
 fine-tuned on my recordings. Piper's tooling changes between versions, so check
 its current training guide if a command below doesn't match.
