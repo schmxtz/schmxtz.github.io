@@ -6,7 +6,12 @@ _site/
 vendor/
 Gemfile.lock
 
-# Voice models stay private; only the rendered clips are published.
+__pycache__/
+
+# Training checkpoints and local exports stay private. The one published voice
+# model lives in assets/voice for the read-aloud page.
 *.onnx
 *.onnx.json
 *.ckpt
+!assets/voice/my-voice.onnx
+!assets/voice/my-voice.onnx.json

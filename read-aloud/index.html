@@ -1,0 +1,197 @@
+---
+title: Read aloud
+description: Paste a Wikipedia link and listen to the article, read in my own voice.
+permalink: /read-aloud/
+layout: null
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d0d0e">
+  <link rel="icon" href="{{ '/images/favicon.ico' | relative_url }}">
+  {% seo %}
+  <style>
+    :root {
+      --bg: #0d0d0e;
+      --text: #b9b4aa;
+      --dim: #6e6a63;
+      --faint: #3a3936;
+      --rule: #232322;
+      --accent: #9fb6cf;
+      --serif: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+      --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--serif);
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    [hidden] { display: none !important; }
+
+    a { color: var(--accent); text-underline-offset: 2px; }
+
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 40px 16px 120px;
+    }
+
+    .top {
+      font-family: var(--mono);
+      font-size: 14px;
+      margin-bottom: 40px;
+    }
+    .top a { color: var(--dim); text-decoration: none; }
+    .top a:hover { color: var(--text); }
+
+    h1 { font-size: 30px; font-weight: 600; line-height: 1.25; margin: 0 0 10px; color: #d8d3c9; }
+
+    .lead { color: var(--dim); margin: 0 0 28px; }
+
+    form { display: flex; gap: 8px; }
+
+    #url {
+      flex: 1;
+      min-width: 0;
+      background: #171718;
+      color: var(--text);
+      border: 1px solid var(--faint);
+      border-radius: 6px;
+      padding: 12px;
+      font: 15px var(--mono);
+    }
+    #url:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+
+    button {
+      background: #1b1c1e;
+      color: #e4dfd5;
+      border: 1px solid var(--faint);
+      border-radius: 6px;
+      padding: 12px 18px;
+      font: 600 16px var(--serif);
+      cursor: pointer;
+    }
+    button:hover { background: #222326; }
+
+    #status {
+      min-height: 1.6em;
+      margin: 12px 0 0;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--dim);
+    }
+
+    details { margin-top: 28px; color: var(--dim); font-size: 16px; }
+    summary { cursor: pointer; color: var(--text); }
+    details p { margin: 10px 0 0; }
+
+    /* article */
+
+    #article {
+      margin-top: 36px;
+      padding-top: 28px;
+      border-top: 1px solid var(--rule);
+    }
+    #article h2 { font-size: 22px; font-weight: 600; margin: 36px 0 8px; color: #d8d3c9; }
+    #article p { margin: 0 0 16px; }
+    .source { font-family: var(--mono); font-size: 13px; color: var(--dim); margin-bottom: 28px !important; }
+
+    .s { cursor: pointer; border-radius: 3px; transition: background 0.3s ease, color 0.3s ease; }
+    .s:hover { color: #d8d3c9; }
+    .s.now { background: #1d242c; color: #e4dfd5; box-shadow: 0 0 0 2px #1d242c; }
+
+    /* player bar */
+
+    #bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      background: rgba(13, 13, 14, 0.94);
+      border-top: 1px solid var(--rule);
+    }
+    #bar button { padding: 10px 14px; font: 15px var(--mono); }
+    #play { min-width: 92px; }
+
+    select {
+      background: #171718;
+      color: var(--text);
+      border: 1px solid var(--faint);
+      border-radius: 6px;
+      padding: 9px 8px;
+      font: 15px var(--mono);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top"><a href="{{ '/' | relative_url }}">&larr; {{ site.title }}</a></div>
+
+    <h1>Read aloud</h1>
+    <p class="lead">
+      Paste a link to a Wikipedia article and listen to it, read in my voice.
+      Only the running text is read: no captions, tables or references.
+    </p>
+
+    <form id="form">
+      <input id="url" type="text" inputmode="url" autocomplete="off" spellcheck="false"
+             placeholder="https://en.wikipedia.org/wiki/Teapot" aria-label="Wikipedia link or article title">
+      <button type="submit">Read</button>
+    </form>
+    <p id="status" role="status"></p>
+
+    <details>
+      <summary>How it works</summary>
+      <p>
+        The voice is a <a href="https://github.com/OHF-Voice/piper1-gpl">Piper</a> model
+        fine-tuned on half an hour of my recordings. It runs entirely in your browser,
+        so the first visit downloads about 80 MB. After that it is stored and starts
+        quickly.
+      </p>
+      <p>
+        The page reads one sentence while it prepares the next few. It keeps playing
+        with the screen locked, and you can pause or skip paragraphs from the lock
+        screen or your headphones. On a computer: space pauses, the arrow keys skip
+        paragraphs.
+      </p>
+      <p>
+        Names and foreign words are sometimes mispronounced, since the pronunciation
+        comes from rules rather than from my recordings.
+      </p>
+    </details>
+
+    <article id="article" hidden></article>
+  </main>
+
+  <div id="bar" hidden>
+    <button id="prev" type="button" aria-label="Previous paragraph">&lsaquo;&lsaquo;</button>
+    <button id="play" type="button">Play</button>
+    <button id="next" type="button" aria-label="Next paragraph">&rsaquo;&rsaquo;</button>
+    <select id="speed" aria-label="Speed">
+      <option value="0.8">0.8&times;</option>
+      <option value="0.9">0.9&times;</option>
+      <option value="1">1&times;</option>
+      <option value="1.1">1.1&times;</option>
+      <option value="1.25">1.25&times;</option>
+      <option value="1.5">1.5&times;</option>
+    </select>
+  </div>
+
+  <script src="{{ '/assets/js/read-aloud.js' | relative_url }}"></script>
+</body>
+</html>

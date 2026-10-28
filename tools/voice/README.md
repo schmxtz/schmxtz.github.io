@@ -40,9 +40,11 @@ WSL2 with Ubuntu (`wsl --install`) or Docker; the RTX 3080 Ti is plenty.
 Expect a few hours. Listen to test sentences now and then and stop once the
 voice sounds like you.
 
-Export the result to `my-voice.onnx` plus `my-voice.onnx.json`. **Keep both out
-of this repository**: anyone with the model can make it say anything in your
-voice. `.gitignore` already blocks `*.onnx` and `*.ckpt`.
+Export the result to `my-voice.onnx` plus `my-voice.onnx.json`. Checkpoints and
+other exports stay out of the repository (`.gitignore` blocks `*.onnx` and
+`*.ckpt`). The one exception is the published model in `assets/voice/`, which
+the read-aloud page needs; it is public on purpose, so anyone can download it
+and make it say anything in my voice.
 
 ## 3. Render the clips
 
@@ -73,3 +75,11 @@ Then commit `assets/audio/` and push.
 
 After adding words to `shuffle-words.js`, run the script again. It only renders
 words that don't have a clip yet, and lists clips for removed words.
+
+## 4. Read-aloud page
+
+`/read-aloud/` synthesises Wikipedia articles in the browser with
+`assets/voice/my-voice.onnx` (onnxruntime-web plus a wasm build of espeak-ng,
+both from jsDelivr, in `assets/js/read-aloud-worker.js`). To publish a newer
+model, copy the `.onnx` and `.onnx.json` there and bump `CACHE` in the worker so
+browsers drop the stored copy.
